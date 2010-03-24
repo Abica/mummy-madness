@@ -4,6 +4,7 @@
 (require 2htdp/universe)
 (require 2htdp/image)
 
+(define-struct size (height width))
 ;;-------------------------------------------------------------------
 ;; Constants
 
@@ -26,7 +27,9 @@
 ; how fast can a mummy move
 (define MUMMY-SPEED 1)
 
-(define CRYPT-SIZE '(60 40))
+(define player-size (make-size 25 25))
+(define crypt-size  (make-size 60 40))
+(define mummy-size  (make-size 25 25))
 
 ;;-------------------------------------------------------------------
 ;; Scenes and layers
@@ -35,14 +38,23 @@
 (define background-layer empty-scene)
 
 (define mummy-layer
-  (circle 25 'outline 'red))
+  (rectangle
+    (size-height mummy-size)
+    (size-width  mummy-size)
+    'solid 'red))
 
 (define player-layer
-    (rectangle 25 25 'solid 'green))
+  (rectangle
+    (size-height player-size)
+    (size-width  player-size)
+    'solid 'green))
 
 (define crypt-layer 
   (overlay
-    (rectangle (first CRYPT-SIZE) (second CRYPT-SIZE) 'solid 'gray)
+    (rectangle
+      (size-height crypt-size)
+      (size-width crypt-size)
+      'solid 'gray)
     (circle 50 'outline 'black)))
 
 (define scroll-layer empty-scene)
