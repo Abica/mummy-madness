@@ -9,9 +9,21 @@
 
 (define SCREEN-WIDTH 400)
 (define SCREEN-HEIGHT 400)
+
+; location of the starting door
+(define ENTRANCE-POS
+  (make-posn 0 (/ SCREEN-WIDTH 2)))
+
+; valid directions for a moving character
 (define DIRECTIONS (list "up" "down" "left" "right"))
+
+; a value representing a stopped character
 (define STUCK 'none)
+
+; how fast can the player move
 (define PLAYER-SPEED 1)
+
+; how fast can a mummy move
 (define MUMMY-SPEED 1)
 
 ;;-------------------------------------------------------------------
@@ -133,8 +145,8 @@
   (let* ((p (world-p w))
          (x (player-x p))
          (y (player-y p)))
-    (or (= 0 x) (= x SCREEN-WIDTH)
-        (= 0 y) (= y SCREEN-HEIGHT))))
+    (or (zero? x) (= x SCREEN-WIDTH)
+        (zero? y) (= y SCREEN-HEIGHT))))
 
 ;;-------------------------------------------------------------------
 ;; utility functions
@@ -192,14 +204,13 @@
   (let* ((p (world-p w))
          (x (player-x p))
          (y (player-y p)))
-    (begin (print d)
-      (if (member d DIRECTIONS)
-        (make-world
-          (world-score w)
-          (make-player x y d)
-          (world-mummies w)
-          (world-crypts w))
-        w))))
+    (if (member d DIRECTIONS)
+      (make-world
+        (world-score w)
+        (make-player x y d)
+        (world-mummies w)
+        (world-crypts w))
+      w)))
 
     ;         ;;;;;;;;; ;;;;;;;;; ;;;;;;;;; ;       ;  ;;;;;;;;;             
    ;         ;             ;         ;     ;       ;  ;                                                                                                                    
