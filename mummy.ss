@@ -26,6 +26,8 @@
 ; how fast can a mummy move
 (define MUMMY-SPEED 1)
 
+(define CRYPT-SIZE '(60 40))
+
 ;;-------------------------------------------------------------------
 ;; Scenes and layers
 
@@ -40,7 +42,7 @@
 
 (define crypt-layer 
   (overlay
-    (rectangle 50 50 'solid 'gray)
+    (rectangle (first CRYPT-SIZE) (second CRYPT-SIZE) 'solid 'gray)
     (circle 50 'outline 'black)))
 
 (define scroll-layer empty-scene)
@@ -62,9 +64,10 @@
 (define-struct player (x y direction))
 
 ;; crypt ::
-;; x         : Number
-;; y         : Number
-;; direction : DIRECTION
+;; x    : Number
+;; y    : Number
+;; open : Boolean
+;; obj  : object
 (define-struct crypt (x y open obj))
 
 ;; mummy ::
@@ -83,11 +86,13 @@
 ;;-------------------------------------------------------------------
 ;; initial states
 
+;; initial-mummies :: (mummy)
 (define (initial-mummies)
   (list (make-mummy 300 300 'up)))
 
+;; initial-crypts :: (crypt)
 (define (initial-crypts)
-  (list (make-crypt 200 120 'up (make-object 'key))))
+  (list (make-crypt 200 120 false (make-object 'key))))
 
 ;; initial-world :: world
 (define (initial-world)
@@ -96,7 +101,6 @@
     (make-player 40 40 STUCK)
     (initial-mummies)
     (initial-crypts)))
-
 
 ;;-------------------------------------------------------------------
 ;; interface functions
