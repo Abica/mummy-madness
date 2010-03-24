@@ -1,0 +1,22 @@
+[ ] draw entrance
+[ ] draw exit
+[ ] draw room
+[ ] draw coffins
+[ ] draw player
+[ ] handle player movement
+[ ] draw player tracks
+[ ] player can open coffins
+[ ] animate coffin items
+[ ] animate mummy
+[ ] add mummy ai
+[ ] mummies can kill player
+[ ] coffin items and effects
+  [ ] player can hide in treasure rooms
+  [ ] there is a mummy hiding in a random coffin
+  [ ] player can eat mummies if they find scrolls
+  [ ] key and king mummy finishes level
+[ ] uneaten mummies follow player into next room
+[ ] game menu
+[ ] pause menu
+[ ] display score
+[ ] display lives
