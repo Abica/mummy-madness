@@ -1,0 +1,213 @@
+;; The first three lines of this file were inserted by DrScheme. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-advanced-reader.ss" "lang")((modname mummy) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #t #t none #f ())))
+(require 2htdp/universe)
+(require 2htdp/image)
+
+;;-------------------------------------------------------------------
+;; Constants
+
+(define SCREEN-WIDTH 400)
+(define SCREEN-HEIGHT 400)
+(define DIRECTIONS (list "up" "down" "left" "right"))
+(define STUCK 'none)
+(define PLAYER-SPEED 1)
+(define MUMMY-SPEED 1)
+
+;;-------------------------------------------------------------------
+;; Scenes and layers
+
+(define empty-scene (rectangle SCREEN-WIDTH SCREEN-HEIGHT 'solid 'white))
+(define background-layer empty-scene)
+
+(define mummy-layer
+  (circle 25 'outline 'red))
+
+(define player-layer
+    (rectangle 25 25 'solid 'green))
+
+(define crypt-layer 
+  (overlay
+    (rectangle 50 50 'solid 'gray)
+    (circle 50 'outline 'black)))
+
+(define scroll-layer empty-scene)
+(define key-layer empty-scene)
+(define king-mummy-layer empty-scene)
+(define treasure-tomb-layer empty-scene)
+
+;;-------------------------------------------------------------------
+;; data structures
+
+;; object ::
+;; type : item-type
+(define-struct object (type))
+
+;; player ::
+;; x         : Number
+;; y         : Number
+;; direction : DIRECTION
+(define-struct player (x y direction))
+
+;; crypt ::
+;; x         : Number
+;; y         : Number
+;; direction : DIRECTION
+(define-struct crypt (x y open obj))
+
+;; mummy ::
+;; x         : Number
+;; y         : Number
+;; direction : DIRECTION
+(define-struct mummy (x y direction))
+
+;; world ::
+;; score   : Number
+;; p       : player
+;; mummies : (mummy)
+;; crypts  : (crypt)
+(define-struct world (score p mummies crypts))
+
+;;-------------------------------------------------------------------
+;; initial states
+
+(define (initial-mummies)
+  (list (make-mummy 300 300 'up)))
+
+(define (initial-crypts)
+  (list (make-crypt 200 120 'up (make-object 'key))))
+
+;; initial-world :: world
+(define (initial-world)
+  (make-world
+    0
+    (make-player 40 40 STUCK)
+    (initial-mummies)
+    (initial-crypts)))
+
+
+;;-------------------------------------------------------------------
+;; interface functions
+
+; render-player :: player -> scene -> image
+(define (render-player p scene)
+  (place-image
+    player-layer
+    (player-x p)
+    (player-y p)
+    scene))
+
+; render-mummy :: mummy -> scene -> image
+(define (render-mummy m scene)
+  (place-image
+    mummy-layer
+    (mummy-x m)
+    (mummy-y m)
+    scene))
+
+; render-crypt :: crypt -> scene -> image
+(define (render-crypt c scene)
+  (place-image
+    crypt-layer
+    (crypt-x c)
+    (crypt-y c)
+    scene))
+
+; render-world :: world -> image
+(define (render-world w)
+  (render-player (world-p w)
+    (foldr
+      (lambda (m l) (render-mummy m l))
+      (foldr
+        (lambda (c l) (render-crypt c l))
+         background-layer
+         (world-crypts w))
+      (world-mummies w))))
+
+;;-------------------------------------------------------------------
+;; collision detection
+
+; determines whether the player is colliding with a wall
+; hit-wall? :: world -> world
+(define (hit-wall? w)
+  (let* ((p (world-p w))
+         (x (player-x p))
+         (y (player-y p)))
+    (or (= 0 x) (= x SCREEN-WIDTH)
+        (= 0 y) (= y SCREEN-HEIGHT))))
+
+;;-------------------------------------------------------------------
+;; utility functions
+
+; takes a direction and flips it
+; opposite-direction -> direction -> direction
+(define (opposite-direction d)
+  (cond
+    ([equal? d "up"] "down")
+    ([equal? d "down"] "up")
+    ([equal? d "left"] "right")
+    ([equal? d "right"] "left")))
+
+;; player-stuck? :: player -> Boolean
+(define (player-stuck? p)
+  (equal? (player-direction p) 'none))
+
+;;-------------------------------------------------------------------
+;; movement functions
+
+;; move-player :: player -> player
+(define (move-player p)
+  (let ((x (player-x p))
+        (y (player-y p))
+        (d (player-direction p)))
+    (cond
+      [(equal? d "down")  (make-player x (+ y PLAYER-SPEED) d)]
+      [(equal? d "up")    (make-player x (- y PLAYER-SPEED) d)]
+      [(equal? d "left")  (make-player (- x PLAYER-SPEED) y d)]
+      [(equal? d "right") (make-player (+ x PLAYER-SPEED) y d)]
+      [else p])))
+
+;; move-mummy :: mummy -> mummy
+(define (move-mummy m)
+  (let ((x (mummy-x m))
+        (y (mummy-y m))
+        (d (mummy-direction m)))
+    (cond
+      [(equal? d "down")  (make-mummy x (+ y MUMMY-SPEED) d)]
+      [(equal? d "up")    (make-mummy x (- y MUMMY-SPEED) d)]
+      [(equal? d "left")  (make-mummy (- x MUMMY-SPEED) y d)]
+      [(equal? d "right") (make-mummy (+ x MUMMY-SPEED) y d)]
+      [else m])))
+
+;; move-objects :: world -> world
+(define (move-objects w)
+  (make-world
+    (world-score w)
+    (move-player (world-p w))
+    (map move-mummy (world-mummies w))
+    (world-crypts w)))
+
+;; handle-keyboard-input :: world -> direction -> world
+(define (handle-keyboard-input w d)
+  (let* ((p (world-p w))
+         (x (player-x p))
+         (y (player-y p)))
+    (begin (print d)
+      (if (member d DIRECTIONS)
+        (make-world
+          (world-score w)
+          (make-player x y d)
+          (world-mummies w)
+          (world-crypts w))
+        w))))
+
+    ;         ;;;;;;;;; ;;;;;;;;; ;;;;;;;;; ;       ;  ;;;;;;;;;             
+   ;         ;             ;         ;     ;       ;  ;                                                                                                                    
+  ;         ;;;;;;;;;     ;         ;     ;;;;;;;;;  ;;;;;;;;;                                                                                                                                
+ ;         ;             ;         ;     ;       ;  ;                                                                                                                      
+;;;;;;;;; ;;;;;;;;;     ;         ;     ;       ;  ;;;;;;;;; RE BE LIGHT
+(big-bang
+  (initial-world)
+  (on-key handle-keyboard-input)
+  (on-tick move-objects)
+  (on-draw render-world))
