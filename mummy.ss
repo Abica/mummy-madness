@@ -88,7 +88,7 @@
 
 ;; initial-mummies :: (mummy)
 (define (initial-mummies)
-  (list (make-mummy 300 300 'up)))
+  (list (make-mummy 300 300 "up")))
 
 ;; initial-crypts :: (crypt)
 (define (initial-crypts)
