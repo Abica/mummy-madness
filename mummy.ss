@@ -22,10 +22,10 @@
 (define STUCK 'none)
 
 ; how fast can the player move
-(define PLAYER-SPEED 1)
+(define PLAYER-SPEED 2)
 
 ; how fast can a mummy move
-(define MUMMY-SPEED 1)
+(define MUMMY-SPEED 2)
 
 (define player-size (make-size 25 25))
 (define crypt-size  (make-size 60 40))
@@ -107,7 +107,30 @@
 
 ;; initial-crypts :: (crypt)
 (define (initial-crypts)
-  (list (make-crypt 200 120 false (make-object 'key))))
+  (list
+   (make-crypt 100 80 false (make-object 'key))
+   (make-crypt 200 80 false (make-object 'key))
+   (make-crypt 300 80 false (make-object 'key))
+   (make-crypt 400 80 false (make-object 'key))
+   (make-crypt 500 80 false (make-object 'key))
+   
+   (make-crypt 100 160 false (make-object 'key))
+   (make-crypt 200 160 false (make-object 'key))
+   (make-crypt 300 160 false (make-object 'key))
+   (make-crypt 400 160 false (make-object 'key))
+   (make-crypt 500 160 false (make-object 'key))
+   
+   (make-crypt 100 240 false (make-object 'key))
+   (make-crypt 200 240 false (make-object 'key))
+   (make-crypt 300 240 false (make-object 'key))
+   (make-crypt 400 240 false (make-object 'key))
+   (make-crypt 500 240 false (make-object 'key))
+   
+   (make-crypt 100 320 false (make-object 'key))
+   (make-crypt 200 320 false (make-object 'key))
+   (make-crypt 300 320 false (make-object 'key))
+   (make-crypt 400 320 false (make-object 'key))
+   (make-crypt 500 320 false (make-object 'key))))
 
 ;; initial-world :: world
 (define (initial-world)
@@ -231,11 +254,11 @@
         (world-crypts w))
       w)))
 
-    ;       ;;;;;;; ;;;;;;; ;;;;;;;  ;     ;  ;;;;;;;  ;;;;;;   ;;;;;;;
-   ;       ;          ;       ;     ;     ;  ;        ;     ;  ;
-  ;       ;;;;;;;    ;       ;     ;;;;;;;  ;;;;;;;  ;;;;;;   ;;;;;;;
- ;       ;          ;       ;     ;     ;  ;        ;   ;    ;
-;;;;;;; ;;;;;;;    ;       ;     ;     ;  ;;;;;;;  ;     ;  ;;;;;;; BE LIGHT
+    ;       ;;;;;;; ;;;;;;;  ;;;;;;; ;     ; ;;;;;;; ;;;;;;  ;;;;;;;
+   ;       ;          ;        ;    ;     ; ;       ;     ; ;
+  ;       ;;;;;;;    ;        ;    ;;;;;;; ;;;;;;; ;;;;;;  ;;;;;;;
+ ;       ;          ;        ;    ;     ; ;       ;   ;   ;
+;;;;;;; ;;;;;;;    ;        ;    ;     ; ;;;;;;; ;     ; ;;;;;;; BE LIGHT
 (big-bang
   (initial-world)
   (on-key handle-keyboard-input)
