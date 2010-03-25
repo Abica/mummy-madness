@@ -8,12 +8,12 @@
 ;;-------------------------------------------------------------------
 ;; Constants
 
-(define SCREEN-WIDTH 400)
+(define SCREEN-WIDTH 600)
 (define SCREEN-HEIGHT 400)
 
 ; location of the starting door
 (define ENTRANCE-POS
-  (make-posn 0 (/ SCREEN-WIDTH 2)))
+  (make-posn 15 (/ SCREEN-HEIGHT 2)))
 
 ; valid directions for a moving character
 (define DIRECTIONS (list "up" "down" "left" "right"))
@@ -55,7 +55,10 @@
       (size-height crypt-size)
       (size-width crypt-size)
       'solid 'gray)
-    (circle 50 'outline 'black)))
+    (rectangle
+      (size-height crypt-size)
+      (size-width crypt-size)
+      'outline 'black)))
 
 (define scroll-layer empty-scene)
 (define key-layer empty-scene)
@@ -110,7 +113,7 @@
 (define (initial-world)
   (make-world
     0
-    (make-player 40 40 STUCK)
+    (make-player (posn-x ENTRANCE-POS) (posn-y ENTRANCE-POS) STUCK)
     (initial-mummies)
     (initial-crypts)))
 
@@ -228,7 +231,7 @@
         (world-crypts w))
       w)))
 
-    ;       ;;;;;;; ;;;;;;; ;;;;;;;  ;     ;  ;;;;;;;  ;;;;;;   ;;;;;;
+    ;       ;;;;;;; ;;;;;;; ;;;;;;;  ;     ;  ;;;;;;;  ;;;;;;   ;;;;;;;
    ;       ;          ;       ;     ;     ;  ;        ;     ;  ;
   ;       ;;;;;;;    ;       ;     ;;;;;;;  ;;;;;;;  ;;;;;;   ;;;;;;;
  ;       ;          ;       ;     ;     ;  ;        ;   ;    ;
