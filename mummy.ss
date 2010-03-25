@@ -49,7 +49,7 @@
     (size-width  player-size)
     'solid 'green))
 
-(define crypt-layer 
+(define crypt-layer
   (overlay
     (rectangle
       (size-height crypt-size)
@@ -228,10 +228,10 @@
         (world-crypts w))
       w)))
 
-    ;       ;;;;;;; ;;;;;;; ;;;;;;;  ;     ;  ;;;;;;;  ;;;;;;   ;;;;;;;           
-   ;       ;          ;       ;     ;     ;  ;        ;     ;  ;                                                                                                  
-  ;       ;;;;;;;    ;       ;     ;;;;;;;  ;;;;;;;  ;;;;;;   ;;;;;;;                                                                                       
- ;       ;          ;       ;     ;     ;  ;        ;   ;    ;                                                                                                 
+    ;       ;;;;;;; ;;;;;;; ;;;;;;;  ;     ;  ;;;;;;;  ;;;;;;   ;;;;;;
+   ;       ;          ;       ;     ;     ;  ;        ;     ;  ;
+  ;       ;;;;;;;    ;       ;     ;;;;;;;  ;;;;;;;  ;;;;;;   ;;;;;;;
+ ;       ;          ;       ;     ;     ;  ;        ;   ;    ;
 ;;;;;;; ;;;;;;;    ;       ;     ;     ;  ;;;;;;;  ;     ;  ;;;;;;; BE LIGHT
 (big-bang
   (initial-world)
