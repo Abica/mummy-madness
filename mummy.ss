@@ -75,21 +75,27 @@
 ;;-------------------------------------------------------------------
 ;; Scenes and layers
 
+;; empty-scene :: image
 (define empty-scene (rectangle SCREEN-WIDTH SCREEN-HEIGHT 'solid 'white))
+
+;; background-layer :: image
 (define background-layer empty-scene)
 
+;; mummy-layer :: image
 (define mummy-layer
   (rectangle
     (size-height sprite-size)
     (size-width  sprite-size)
     'solid 'red))
 
+;; player-layer :: image
 (define player-layer
   (rectangle
     (size-height sprite-size)
     (size-width  sprite-size)
     'solid 'green))
 
+;; crypt-layer :: image
 (define crypt-layer
   (overlay
     (rectangle
@@ -101,9 +107,16 @@
       (size-width crypt-size)
       'outline 'black)))
 
+;; scroll-layer :: image
 (define scroll-layer empty-scene)
+
+;; key-layer :: image
 (define key-layer empty-scene)
+
+;; king-mummy-layer :: image
 (define king-mummy-layer empty-scene)
+
+;; treasure-tomb-layer :: image
 (define treasure-tomb-layer empty-scene)
 
 ;;-------------------------------------------------------------------
