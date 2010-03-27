@@ -3,6 +3,7 @@
 #reader(lib "htdp-advanced-reader.ss" "lang")((modname mummy) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #t #t none #f ())))
 (require 2htdp/universe)
 (require 2htdp/image)
+(require scheme/base)
 
 ;;-------------------------------------------------------------------
 ;; data structures
@@ -39,10 +40,11 @@
 
 ;; world ::
 ;; score   : Number
+;; lives   : Number
 ;; p       : sprite
 ;; mummies : (sprite)
 ;; crypts  : (crypt)
-(define-struct world (score p mummies crypts))
+(define-struct world (score lives p mummies crypts))
 
 ;;-------------------------------------------------------------------
 ;; Constants
@@ -62,6 +64,9 @@
 
 ; how fast can the player move
 (define PLAYER-SPEED 5)
+
+; how many lives does the player start with?
+(define PLAYER-STARTING-LIVES 5)
 
 ; how fast can a mummy move
 (define MUMMY-SPEED 5)
@@ -124,7 +129,7 @@
 
 ;; initial-mummies :: (sprite)
 (define (initial-mummies)
-  (list (make-sprite 300 300 "up" MUMMY-SPEED)))
+  (list (make-sprite 300 300 STUCK MUMMY-SPEED)))
 
 ;; initial-crypts :: (crypt)
 (define (initial-crypts)
@@ -157,6 +162,7 @@
 (define (initial-world)
   (make-world
     0
+    PLAYER-STARTING-LIVES
     (make-sprite (posn-x ENTRANCE-POS) (posn-y ENTRANCE-POS) STUCK PLAYER-SPEED)
     (initial-mummies)
     (initial-crypts)))
@@ -184,8 +190,8 @@
     (make-bounding-box
       y
       (+ x (size-height sprite-size))
-      x
-      (+ y (size-width sprite-size)))))
+      (+ y (size-width sprite-size))
+      x)))
 
 ;; crypt->bounding-box :: crypt -> bounding-box
 (define (crypt->bounding-box c)
@@ -194,8 +200,8 @@
     (make-bounding-box
       y
       (+ x (size-height crypt-size))
-      x
-      (+ y (size-width crypt-size)))))
+      (+ y (size-width crypt-size))
+      x)))
 
 ;;-------------------------------------------------------------------
 ;; interface functions
@@ -224,22 +230,40 @@
     (crypt-y c)
     scene))
 
+;; render-score :: Number -> scene -> image
+(define (render-score score scene)
+  (place-image
+    (text (number->string score) 24 "olive")
+    20
+    20
+    scene))
+
+;; render-lives :: Number -> scene -> image
+(define (render-lives lives scene)
+  (place-image
+    (text (number->string lives) 24 "olive")
+    (- SCREEN-WIDTH 50)
+    20
+    scene))
+
 ;; render-world :: world -> image
 (define (render-world w)
   (render-player (world-p w)
-    (foldr
-      (lambda (m l) (render-mummy m l))
-      (foldr
-        (lambda (c l) (render-crypt c l))
-         background-layer
-         (world-crypts w))
-      (world-mummies w))))
+    (render-lives (world-lives w)
+      (render-score (world-score w)
+        (foldr
+          (lambda (m l) (render-mummy m l))
+          (foldr
+            (lambda (c l) (render-crypt c l))
+             background-layer
+             (world-crypts w))
+          (world-mummies w))))))
 
 ;;-------------------------------------------------------------------
 ;; collision detection
 
 ;; hit-wall? :: sprite -> Boolean
-;-----
+;;;
 ;; determines whether the player is colliding with a wall
 (define (hit-wall? s)
   (let ((x (sprite-x s))
@@ -248,15 +272,15 @@
         (zero? y) (= y SCREEN-HEIGHT))))
 
 ;; collided? :: bounding-box -> bounding-box -> Boolean
-;-----
+;;;
 ;; determine whether 2 bounding boxes have collided which each other
 (define (collided? a b)
   (and
     (> (bounding-box-right  a) (bounding-box-left   b))
     (< (bounding-box-left   a) (bounding-box-right  b))
     (> (bounding-box-bottom a) (bounding-box-top    b))
-    (> (bounding-box-top    a) (bounding-box-bottom b))))
-  
+    (< (bounding-box-top    a) (bounding-box-bottom b))))
+
 ;;-------------------------------------------------------------------
 ;; movement functions
 
@@ -273,14 +297,29 @@
       [(equal? d "right") (make-sprite (+ x speed) y d speed)]
       [else s])))
 
+;; player-was-eaten? :: sprite -> (sprite) -> Boolean
+(define (player-was-eaten? player mummies)
+  (let ((player-bb (sprite->bounding-box player)))
+    (findf
+      (lambda (m) (collided? player-bb (sprite->bounding-box m)))
+      mummies)))
+ 
 ;; update-world :: world -> world
 (define (update-world w)
-  (let ((crypts (world-crypts w)))
+  (let* ((crypts  (world-crypts w))
+         (player  (move-sprite (world-p w)))
+         (mummies (map move-sprite (world-mummies w)))
+         (lives   (world-lives w)))
     (make-world
       (world-score w)
-      (move-sprite (world-p w))
-      (map move-sprite (world-mummies w))
+      (if (player-was-eaten? player mummies) (- lives 1) lives)
+      player
+      mummies
       crypts)))
+
+;; no-lives-remaining :: w -> Boolean
+(define (no-lives-remaining w)
+  (<= (world-lives w) 0))
 
 ;;-------------------------------------------------------------------
 ;; player input functions
@@ -293,6 +332,7 @@
     (if (member d DIRECTIONS)
       (make-world
         (world-score w)
+        (world-lives w)
         (make-sprite x y d PLAYER-SPEED)
         (world-mummies w)
         (world-crypts w))
@@ -307,4 +347,5 @@
   (initial-world)
   (on-key handle-keyboard-input)
   (on-tick update-world)
-  (on-draw render-world))
+  (on-draw render-world)
+  (stop-when no-lives-remaining))
