@@ -4,69 +4,20 @@
 (require 2htdp/universe)
 (require 2htdp/image)
 
-(define-struct size (height width))
-;;-------------------------------------------------------------------
-;; Constants
-
-(define SCREEN-WIDTH 600)
-(define SCREEN-HEIGHT 400)
-
-; location of the starting door
-(define ENTRANCE-POS
-  (make-posn 15 (/ SCREEN-HEIGHT 2)))
-
-; valid directions for a moving character
-(define DIRECTIONS (list "up" "down" "left" "right"))
-
-; a value representing a stopped character
-(define STUCK 'none)
-
-; how fast can the player move
-(define PLAYER-SPEED 5)
-
-; how fast can a mummy move
-(define MUMMY-SPEED 5)
-
-(define player-size (make-size 25 25))
-(define crypt-size  (make-size 60 40))
-(define mummy-size  (make-size 25 25))
-
-;;-------------------------------------------------------------------
-;; Scenes and layers
-
-(define empty-scene (rectangle SCREEN-WIDTH SCREEN-HEIGHT 'solid 'white))
-(define background-layer empty-scene)
-
-(define mummy-layer
-  (rectangle
-    (size-height mummy-size)
-    (size-width  mummy-size)
-    'solid 'red))
-
-(define player-layer
-  (rectangle
-    (size-height player-size)
-    (size-width  player-size)
-    'solid 'green))
-
-(define crypt-layer
-  (overlay
-    (rectangle
-      (size-height crypt-size)
-      (size-width crypt-size)
-      'solid 'gray)
-    (rectangle
-      (size-height crypt-size)
-      (size-width crypt-size)
-      'outline 'black)))
-
-(define scroll-layer empty-scene)
-(define key-layer empty-scene)
-(define king-mummy-layer empty-scene)
-(define treasure-tomb-layer empty-scene)
-
 ;;-------------------------------------------------------------------
 ;; data structures
+
+;; bounding-box ::
+;; top    : Number
+;; right  : Number
+;; bottom : Number
+;; left   : Number
+(define-struct bounding-box (top right bottom left))
+
+;; size ::
+;; height : Number
+;; width  : Number
+(define-struct size (height width))
 
 ;; object ::
 ;; type : item-type
@@ -92,6 +43,68 @@
 ;; mummies : (sprite)
 ;; crypts  : (crypt)
 (define-struct world (score p mummies crypts))
+
+;;-------------------------------------------------------------------
+;; Constants
+
+(define SCREEN-WIDTH 600)
+(define SCREEN-HEIGHT 400)
+
+; location of the starting door
+(define ENTRANCE-POS
+  (make-posn 15 (/ SCREEN-HEIGHT 2)))
+
+; valid directions for a moving character
+(define DIRECTIONS (list "up" "down" "left" "right"))
+
+; a value representing a stopped character
+(define STUCK 'none)
+
+; how fast can the player move
+(define PLAYER-SPEED 5)
+
+; how fast can a mummy move
+(define MUMMY-SPEED 5)
+
+; how large are sprites
+(define sprite-size (make-size 25 25))
+
+; how large are crypts
+(define crypt-size (make-size 60 40))
+
+;;-------------------------------------------------------------------
+;; Scenes and layers
+
+(define empty-scene (rectangle SCREEN-WIDTH SCREEN-HEIGHT 'solid 'white))
+(define background-layer empty-scene)
+
+(define mummy-layer
+  (rectangle
+    (size-height sprite-size)
+    (size-width  sprite-size)
+    'solid 'red))
+
+(define player-layer
+  (rectangle
+    (size-height sprite-size)
+    (size-width  sprite-size)
+    'solid 'green))
+
+(define crypt-layer
+  (overlay
+    (rectangle
+      (size-height crypt-size)
+      (size-width crypt-size)
+      'solid 'gray)
+    (rectangle
+      (size-height crypt-size)
+      (size-width crypt-size)
+      'outline 'black)))
+
+(define scroll-layer empty-scene)
+(define key-layer empty-scene)
+(define king-mummy-layer empty-scene)
+(define treasure-tomb-layer empty-scene)
 
 ;;-------------------------------------------------------------------
 ;; initial states
@@ -136,55 +149,6 @@
     (initial-crypts)))
 
 ;;-------------------------------------------------------------------
-;; interface functions
-
-; render-player :: sprite -> scene -> image
-(define (render-player p scene)
-  (place-image
-    player-layer
-    (sprite-x p)
-    (sprite-y p)
-    scene))
-
-; render-mummy :: sprite -> scene -> image
-(define (render-mummy m scene)
-  (place-image
-    mummy-layer
-    (sprite-x m)
-    (sprite-y m)
-    scene))
-
-; render-crypt :: crypt -> scene -> image
-(define (render-crypt c scene)
-  (place-image
-    crypt-layer
-    (crypt-x c)
-    (crypt-y c)
-    scene))
-
-; render-world :: world -> image
-(define (render-world w)
-  (render-player (world-p w)
-    (foldr
-      (lambda (m l) (render-mummy m l))
-      (foldr
-        (lambda (c l) (render-crypt c l))
-         background-layer
-         (world-crypts w))
-      (world-mummies w))))
-
-;;-------------------------------------------------------------------
-;; collision detection
-
-; determines whether the player is colliding with a wall
-; hit-wall? :: sprite -> Boolean
-(define (hit-wall? s)
-  (let ((x (sprite-x s))
-        (y (sprite-y s)))
-    (or (zero? x) (= x SCREEN-WIDTH)
-        (zero? y) (= y SCREEN-HEIGHT))))
-
-;;-------------------------------------------------------------------
 ;; utility functions
 
 ; takes a direction and flips it
@@ -200,6 +164,86 @@
 (define (sprite-stuck? s)
   (equal? (sprite-direction s) 'none))
 
+;; sprite->bounding-box :: sprite -> bounding-box
+(define (sprite->bounding-box s)
+  (let ((x (sprite-x s))
+        (y (sprite-y s)))
+    (make-bounding-box
+      y
+      (+ x (size-height sprite-size))
+      x
+      (+ y (size-width sprite-size)))))
+
+;; crypt->bounding-box :: crypt -> bounding-box
+(define (crypt->bounding-box c)
+  (let ((x (crypt-x c))
+        (y (crypt-y c)))
+    (make-bounding-box
+      y
+      (+ x (size-height crypt-size))
+      x
+      (+ y (size-width crypt-size)))))
+
+;;-------------------------------------------------------------------
+;; interface functions
+
+;; render-player :: sprite -> scene -> image
+(define (render-player p scene)
+  (place-image
+    player-layer
+    (sprite-x p)
+    (sprite-y p)
+    scene))
+
+;; render-mummy :: sprite -> scene -> image
+(define (render-mummy m scene)
+  (place-image
+    mummy-layer
+    (sprite-x m)
+    (sprite-y m)
+    scene))
+
+;; render-crypt :: crypt -> scene -> image
+(define (render-crypt c scene)
+  (place-image
+    crypt-layer
+    (crypt-x c)
+    (crypt-y c)
+    scene))
+
+;; render-world :: world -> image
+(define (render-world w)
+  (render-player (world-p w)
+    (foldr
+      (lambda (m l) (render-mummy m l))
+      (foldr
+        (lambda (c l) (render-crypt c l))
+         background-layer
+         (world-crypts w))
+      (world-mummies w))))
+
+;;-------------------------------------------------------------------
+;; collision detection
+
+;; hit-wall? :: sprite -> Boolean
+;-----
+;; determines whether the player is colliding with a wall
+(define (hit-wall? s)
+  (let ((x (sprite-x s))
+        (y (sprite-y s)))
+    (or (zero? x) (= x SCREEN-WIDTH)
+        (zero? y) (= y SCREEN-HEIGHT))))
+
+;; collided? :: bounding-box -> bounding-box -> Boolean
+;-----
+;; determine whether 2 bounding boxes have collided which each other
+(define (collided? a b)
+  (and
+    (> (bounding-box-right  a) (bounding-box-left   b))
+    (< (bounding-box-left   a) (bounding-box-right  b))
+    (> (bounding-box-bottom a) (bounding-box-top    b))
+    (> (bounding-box-top    a) (bounding-box-bottom b))))
+  
 ;;-------------------------------------------------------------------
 ;; movement functions
 
