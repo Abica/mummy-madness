@@ -22,10 +22,10 @@
 (define STUCK 'none)
 
 ; how fast can the player move
-(define PLAYER-SPEED 2)
+(define PLAYER-SPEED 5)
 
 ; how fast can a mummy move
-(define MUMMY-SPEED 2)
+(define MUMMY-SPEED 5)
 
 (define player-size (make-size 25 25))
 (define crypt-size  (make-size 60 40))
@@ -72,12 +72,6 @@
 ;; type : item-type
 (define-struct object (type))
 
-;; player ::
-;; x         : Number
-;; y         : Number
-;; direction : DIRECTION
-(define-struct player (x y direction))
-
 ;; crypt ::
 ;; x    : Number
 ;; y    : Number
@@ -85,25 +79,26 @@
 ;; obj  : object
 (define-struct crypt (x y open obj))
 
-;; mummy ::
+;; sprite ::
 ;; x         : Number
 ;; y         : Number
 ;; direction : DIRECTION
-(define-struct mummy (x y direction))
+;; speed     : Number
+(define-struct sprite (x y direction speed))
 
 ;; world ::
 ;; score   : Number
-;; p       : player
-;; mummies : (mummy)
+;; p       : sprite
+;; mummies : (sprite)
 ;; crypts  : (crypt)
 (define-struct world (score p mummies crypts))
 
 ;;-------------------------------------------------------------------
 ;; initial states
 
-;; initial-mummies :: (mummy)
+;; initial-mummies :: (sprite)
 (define (initial-mummies)
-  (list (make-mummy 300 300 "up")))
+  (list (make-sprite 300 300 "up" MUMMY-SPEED)))
 
 ;; initial-crypts :: (crypt)
 (define (initial-crypts)
@@ -136,27 +131,27 @@
 (define (initial-world)
   (make-world
     0
-    (make-player (posn-x ENTRANCE-POS) (posn-y ENTRANCE-POS) STUCK)
+    (make-sprite (posn-x ENTRANCE-POS) (posn-y ENTRANCE-POS) STUCK PLAYER-SPEED)
     (initial-mummies)
     (initial-crypts)))
 
 ;;-------------------------------------------------------------------
 ;; interface functions
 
-; render-player :: player -> scene -> image
+; render-player :: sprite -> scene -> image
 (define (render-player p scene)
   (place-image
     player-layer
-    (player-x p)
-    (player-y p)
+    (sprite-x p)
+    (sprite-y p)
     scene))
 
-; render-mummy :: mummy -> scene -> image
+; render-mummy :: sprite -> scene -> image
 (define (render-mummy m scene)
   (place-image
     mummy-layer
-    (mummy-x m)
-    (mummy-y m)
+    (sprite-x m)
+    (sprite-y m)
     scene))
 
 ; render-crypt :: crypt -> scene -> image
@@ -182,11 +177,10 @@
 ;; collision detection
 
 ; determines whether the player is colliding with a wall
-; hit-wall? :: world -> world
-(define (hit-wall? w)
-  (let* ((p (world-p w))
-         (x (player-x p))
-         (y (player-y p)))
+; hit-wall? :: sprite -> Boolean
+(define (hit-wall? s)
+  (let ((x (sprite-x s))
+        (y (sprite-y s)))
     (or (zero? x) (= x SCREEN-WIDTH)
         (zero? y) (= y SCREEN-HEIGHT))))
 
@@ -202,54 +196,47 @@
     ([equal? d "left"] "right")
     ([equal? d "right"] "left")))
 
-;; player-stuck? :: player -> Boolean
-(define (player-stuck? p)
-  (equal? (player-direction p) 'none))
+;; sprite-stuck? :: sprite -> Boolean
+(define (sprite-stuck? s)
+  (equal? (sprite-direction s) 'none))
 
 ;;-------------------------------------------------------------------
 ;; movement functions
 
-;; move-player :: player -> player
-(define (move-player p)
-  (let ((x (player-x p))
-        (y (player-y p))
-        (d (player-direction p)))
+;; move-sprite :: sprite -> sprite
+(define (move-sprite s)
+  (let ((x     (sprite-x s))
+        (y     (sprite-y s))
+        (d     (sprite-direction s))
+        (speed (sprite-speed s)))
     (cond
-      [(equal? d "down")  (make-player x (+ y PLAYER-SPEED) d)]
-      [(equal? d "up")    (make-player x (- y PLAYER-SPEED) d)]
-      [(equal? d "left")  (make-player (- x PLAYER-SPEED) y d)]
-      [(equal? d "right") (make-player (+ x PLAYER-SPEED) y d)]
-      [else p])))
+      [(equal? d "down")  (make-sprite x (+ y speed) d speed)]
+      [(equal? d "up")    (make-sprite x (- y speed) d speed)]
+      [(equal? d "left")  (make-sprite (- x speed) y d speed)]
+      [(equal? d "right") (make-sprite (+ x speed) y d speed)]
+      [else s])))
 
-;; move-mummy :: mummy -> mummy
-(define (move-mummy m)
-  (let ((x (mummy-x m))
-        (y (mummy-y m))
-        (d (mummy-direction m)))
-    (cond
-      [(equal? d "down")  (make-mummy x (+ y MUMMY-SPEED) d)]
-      [(equal? d "up")    (make-mummy x (- y MUMMY-SPEED) d)]
-      [(equal? d "left")  (make-mummy (- x MUMMY-SPEED) y d)]
-      [(equal? d "right") (make-mummy (+ x MUMMY-SPEED) y d)]
-      [else m])))
+;; update-world :: world -> world
+(define (update-world w)
+  (let ((crypts (world-crypts w)))
+    (make-world
+      (world-score w)
+      (move-sprite (world-p w))
+      (map move-sprite (world-mummies w))
+      crypts)))
 
-;; move-objects :: world -> world
-(define (move-objects w)
-  (make-world
-    (world-score w)
-    (move-player (world-p w))
-    (map move-mummy (world-mummies w))
-    (world-crypts w)))
+;;-------------------------------------------------------------------
+;; player input functions
 
 ;; handle-keyboard-input :: world -> direction -> world
 (define (handle-keyboard-input w d)
   (let* ((p (world-p w))
-         (x (player-x p))
-         (y (player-y p)))
+         (x (sprite-x p))
+         (y (sprite-y p)))
     (if (member d DIRECTIONS)
       (make-world
         (world-score w)
-        (make-player x y d)
+        (make-sprite x y d PLAYER-SPEED)
         (world-mummies w)
         (world-crypts w))
       w)))
@@ -262,5 +249,5 @@
 (big-bang
   (initial-world)
   (on-key handle-keyboard-input)
-  (on-tick move-objects)
+  (on-tick update-world)
   (on-draw render-world))
