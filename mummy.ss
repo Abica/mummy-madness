@@ -49,6 +49,10 @@
 
   (define SCREEN-WIDTH 660)
   (define SCREEN-HEIGHT 450)
+  
+  (define GRID-WIDTH (- SCREEN-WIDTH  30))
+  (define GRID-HEIGHT (- SCREEN-HEIGHT 59))
+  
   (define-struct posn (x y))
 
   ; how large are sprites
@@ -59,7 +63,7 @@
   
   ; location of the starting door
   (define ENTRANCE-POS
-    (make-posn (/ SCREEN-WIDTH 2) (size-height sprite-size)))
+    (make-posn (/ SCREEN-WIDTH 2) (+ (size-height sprite-size) 30)))
 
   ; valid directions for a moving character
   (define DIRECTIONS (list "up" "down" "left" "right"))
@@ -80,13 +84,14 @@
   ;; Scenes and layers
 
   ;; empty-scene :: image
-  (define empty-scene (rectangle SCREEN-WIDTH SCREEN-HEIGHT 'solid 'yellow))
+  (define empty-scene (rectangle SCREEN-WIDTH SCREEN-HEIGHT 'outline 'black))
 
   ;; background-layer :: image
   (define background-layer
-    (overlay
-      (rectangle SCREEN-WIDTH SCREEN-HEIGHT 'outline 'black)
-      empty-scene))
+    (overlay/xy
+      empty-scene
+      15 44
+      (rectangle GRID-WIDTH GRID-HEIGHT 'solid 'black)))
 
 
   ;; mummy-layer :: image
@@ -240,7 +245,7 @@
   (define (render-lives lives scene)
     (place-image
       (text (number->string lives) 24 "olive")
-      (- SCREEN-WIDTH 50)
+      (- SCREEN-WIDTH 20)
       20
       scene))
 
@@ -267,7 +272,7 @@
     (let ((x (sprite-x s))
           (y (sprite-y s)))
       (or (zero? x) (= x SCREEN-WIDTH)
-          (zero? y) (= y SCREEN-HEIGHT))))
+          (= y 30) (= y SCREEN-HEIGHT))))
 
   ;; collided? :: bounding-box -> bounding-box -> Boolean
   ;;;
