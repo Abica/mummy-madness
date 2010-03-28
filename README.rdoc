@@ -1,5 +1,5 @@
 Mummy Madness is a remake of the old Amstrad game Oh Mummy
-that was written for the 7 day lisp game design contest.
+that was written for the 7 day lisp game design challenge.
 
 The game was originally written in Clojure, but I scrapped that
 code and rewrote it in PLT Scheme using the universe and image

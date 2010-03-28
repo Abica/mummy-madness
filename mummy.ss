@@ -3,6 +3,7 @@
   (require 2htdp/image)
   (require scheme/base)
 
+  
   ;;-------------------------------------------------------------------
   ;; data structures
 
@@ -44,6 +45,7 @@
   ;; crypts  : (crypt)
   (define-struct world (score lives p mummies crypts))
 
+  
   ;;-------------------------------------------------------------------
   ;; Constants
 
@@ -82,6 +84,7 @@
   ; how fast can a mummy move
   (define MUMMY-SPEED 30)
 
+  
   ;;-------------------------------------------------------------------
   ;; Scenes and layers
 
@@ -129,6 +132,7 @@
   ;; treasure-tomb-layer :: image
   (define treasure-tomb-layer empty-scene)
 
+  
   ;;-------------------------------------------------------------------
   ;; initial states
 
@@ -171,6 +175,7 @@
       (make-sprite (posn-x ENTRANCE-POS) (posn-y ENTRANCE-POS) STUCK PLAYER-SPEED)
       (initial-mummies)
       (initial-crypts)))
+  
 
   ;;-------------------------------------------------------------------
   ;; utility functions
@@ -207,6 +212,7 @@
         (+ x (size-width crypt-size))
         (+ y (size-height crypt-size))
         x)))
+  
 
   ;;-------------------------------------------------------------------
   ;; interface functions
@@ -264,6 +270,7 @@
                (world-crypts w))
             (world-mummies w))))))
 
+  
   ;;-------------------------------------------------------------------
   ;; collision detection
 
@@ -286,6 +293,7 @@
       (> (bounding-box-bottom a) (bounding-box-top    b))
       (< (bounding-box-top    a) (bounding-box-bottom b))))
 
+  
   ;;-------------------------------------------------------------------
   ;; movement functions
 
@@ -331,7 +339,15 @@
         [(equal? d "left")  (update-sprite-position s 'x -)]
         [(equal? d "right") (update-sprite-position s 'x +)]
         [else s])))
+  
+  
+  ;;-------------------------------------------------------------------
+  ;; enemy ai
 
+  
+  ;;-------------------------------------------------------------------
+  ;; sprite health
+  
   ;; player-was-eaten? :: sprite -> (sprite) -> Boolean
   (define (player-was-eaten? player mummies)
     (let ((player-bb (sprite->bounding-box player)))
@@ -339,6 +355,10 @@
         (lambda (m) (collided? player-bb (sprite->bounding-box m)))
         mummies)))
 
+  ;; no-lives-remaining :: w -> Boolean
+  (define (no-lives-remaining w)
+    (<= (world-lives w) 0))
+  
   ;; update-world :: world -> world
   (define (update-world w)
     (let* ((crypts  (world-crypts w))
@@ -352,10 +372,7 @@
         mummies
         crypts)))
 
-  ;; no-lives-remaining :: w -> Boolean
-  (define (no-lives-remaining w)
-    (<= (world-lives w) 0))
-
+  
   ;;-------------------------------------------------------------------
   ;; player input functions
 
