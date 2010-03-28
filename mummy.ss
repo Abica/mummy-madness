@@ -47,12 +47,19 @@
   ;;-------------------------------------------------------------------
   ;; Constants
 
-  (define SCREEN-WIDTH 630)
-  (define SCREEN-HEIGHT 420)
+  (define SCREEN-WIDTH 660)
+  (define SCREEN-HEIGHT 450)
   (define-struct posn (x y))
+
+  ; how large are sprites
+  (define sprite-size (make-size 30 30))
+
+  ; how large are crypts
+  (define crypt-size (make-size 90 60))
+  
   ; location of the starting door
   (define ENTRANCE-POS
-    (make-posn (/ SCREEN-WIDTH 2) (/ SCREEN-HEIGHT 2)))
+    (make-posn (/ SCREEN-WIDTH 2) (size-height sprite-size)))
 
   ; valid directions for a moving character
   (define DIRECTIONS (list "up" "down" "left" "right"))
@@ -69,20 +76,18 @@
   ; how fast can a mummy move
   (define MUMMY-SPEED 30)
 
-  ; how large are sprites
-  (define sprite-size (make-size 30 30))
-
-  ; how large are crypts
-  (define crypt-size (make-size 90 60))
-
   ;;-------------------------------------------------------------------
   ;; Scenes and layers
 
   ;; empty-scene :: image
-  (define empty-scene (rectangle SCREEN-WIDTH SCREEN-HEIGHT 'solid 'white))
+  (define empty-scene (rectangle SCREEN-WIDTH SCREEN-HEIGHT 'solid 'yellow))
 
   ;; background-layer :: image
-  (define background-layer (rectangle SCREEN-WIDTH SCREEN-HEIGHT 'solid 'black))
+  (define background-layer
+    (overlay
+      (rectangle SCREEN-WIDTH SCREEN-HEIGHT 'outline 'black)
+      empty-scene))
+
 
   ;; mummy-layer :: image
   (define mummy-layer
@@ -100,15 +105,10 @@
 
   ;; crypt-layer :: image
   (define crypt-layer
-    (overlay
-      (rectangle
-        (size-height crypt-size)
-        (size-width crypt-size)
-        'solid 'gray)
-      (rectangle
-        (size-height crypt-size)
-        (size-width crypt-size)
-        'outline 'black)))
+    (rectangle
+      (size-height crypt-size)
+      (size-width crypt-size)
+      'solid 'gray))
 
   ;; scroll-layer :: image
   (define scroll-layer empty-scene)
@@ -132,29 +132,29 @@
   ;; initial-crypts :: (crypt)
   (define (initial-crypts)
     (list
-     (make-crypt 75 90 #f (make-object 'key))
-     (make-crypt 195 90 #f (make-object 'key))
-     (make-crypt 315 90 #f (make-object 'key))
-     (make-crypt 435 90 #f (make-object 'key))
-     (make-crypt 555 90 #f (make-object 'key))
+     (make-crypt 90 105 #f (make-object 'key))
+     (make-crypt 210 105 #f (make-object 'key))
+     (make-crypt 330 105 #f (make-object 'key))
+     (make-crypt 450 105 #f (make-object 'key))
+     (make-crypt 570 105 #f (make-object 'key))
 
-     (make-crypt 75 180 #f (make-object 'key))
-     (make-crypt 195 180 #f (make-object 'key))
-     (make-crypt 315 180 #f (make-object 'key))
-     (make-crypt 435 180 #f (make-object 'key))
-     (make-crypt 555 180 #f (make-object 'key))
+     (make-crypt 90 195 #f (make-object 'key))
+     (make-crypt 210 195 #f (make-object 'key))
+     (make-crypt 330 195 #f (make-object 'key))
+     (make-crypt 450 195 #f (make-object 'key))
+     (make-crypt 570 195 #f (make-object 'key))
 
-     (make-crypt 75 270 #f (make-object 'key))
-     (make-crypt 195 270 #f (make-object 'key))
-     (make-crypt 315 270 #f (make-object 'key))
-     (make-crypt 435 270 #f (make-object 'key))
-     (make-crypt 555 270 #f (make-object 'key))
+     (make-crypt 90 285 #f (make-object 'key))
+     (make-crypt 210 285 #f (make-object 'key))
+     (make-crypt 330 285 #f (make-object 'key))
+     (make-crypt 450 285 #f (make-object 'key))
+     (make-crypt 570 285 #f (make-object 'key))
 
-     (make-crypt 75 360 #f (make-object 'key))
-     (make-crypt 195 360 #f (make-object 'key))
-     (make-crypt 315 360 #f (make-object 'key))
-     (make-crypt 435 360 #f (make-object 'key))
-     (make-crypt 555 360 #f (make-object 'key))))
+     (make-crypt 90 375 #f (make-object 'key))
+     (make-crypt 210 375 #f (make-object 'key))
+     (make-crypt 330 375 #f (make-object 'key))
+     (make-crypt 450 375 #f (make-object 'key))
+     (make-crypt 570 375 #f (make-object 'key))))
 
   ;; initial-world :: world
   (define (initial-world)
@@ -287,13 +287,13 @@
     (let ((w (size-width sprite-size)))
       (* w
          (round (/ x w)))))
-  
+
   ;; snap-y :: Number -> Number
   (define (snap-y y)
     (let ((h (size-height sprite-size)))
       (* h
          (round (/ y h)))))
-  
+
   ;; update-sprite-position :: sprite -> ('x | 'y) -> (+ | -) -> sprite
   (define (update-sprite-position s d operator)
     (let* ((speed (sprite-speed s))
@@ -306,7 +306,7 @@
       (if (hit-wall? new-s)
         (make-sprite x y STUCK speed)
         new-s)))
-  
+
   ;; move-sprite :: sprite -> sprite
   (define (move-sprite s)
     (let* ((d (sprite-direction s)))
