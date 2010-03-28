@@ -200,7 +200,6 @@
         (+ x (size-height crypt-size))
         (+ y (size-width crypt-size))
         x)))
-  
 
   ;;-------------------------------------------------------------------
   ;; interface functions
@@ -295,22 +294,28 @@
       (* h
          (round (/ y h)))))
   
+  ;; update-sprite-position :: sprite -> ('x | 'y) -> (+ | -) -> sprite
+  (define (update-sprite-position s d operator)
+    (let* ((speed (sprite-speed s))
+           (x (sprite-x s))
+           (y (sprite-y s))
+           (new-s
+             (if (eq? d 'x)
+               (make-sprite (snap-x (operator x speed)) y STUCK speed)
+               (make-sprite x (snap-y (operator y speed)) STUCK speed))))
+      (if (hit-wall? new-s)
+        (make-sprite x y STUCK speed)
+        new-s)))
+  
   ;; move-sprite :: sprite -> sprite
   (define (move-sprite s)
-    (let* ((x     (sprite-x s))
-           (y     (sprite-y s))
-           (d     (sprite-direction s))
-           (speed (sprite-speed s))
-           (new-s (cond
-                    [(hit-wall? s) s]
-                    [(equal? d "down")  (make-sprite  x (snap-y (+ y speed)) STUCK speed)]
-                    [(equal? d "up")    (make-sprite  x (snap-y (- y speed)) STUCK speed)]
-                    [(equal? d "left")  (make-sprite (snap-x (- x speed)) y  STUCK speed)]
-                    [(equal? d "right") (make-sprite (snap-x (+ x speed)) y  STUCK speed)]
-                    [else s])))
-      (if (hit-wall? new-s)
-          (make-sprite x y STUCK speed)
-          new-s)))
+    (let* ((d (sprite-direction s)))
+      (cond
+        [(equal? d "down")  (update-sprite-position s 'y +)]
+        [(equal? d "up")    (update-sprite-position s 'y -)]
+        [(equal? d "left")  (update-sprite-position s 'x -)]
+        [(equal? d "right") (update-sprite-position s 'x +)]
+        [else s])))
 
   ;; player-was-eaten? :: sprite -> (sprite) -> Boolean
   (define (player-was-eaten? player mummies)
