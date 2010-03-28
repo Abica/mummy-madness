@@ -179,14 +179,14 @@
   ; opposite-direction -> direction -> direction
   (define (opposite-direction d)
     (cond
-      ([eq? d "up"] "down")
-      ([eq? d "down"] "up")
-      ([eq? d "left"] "right")
-      ([eq? d "right"] "left")))
+      ([equal? d "up"] "down")
+      ([equal? d "down"] "up")
+      ([equal? d "left"] "right")
+      ([equal? d "right"] "left")))
 
   ;; sprite-stuck? :: sprite -> Boolean
   (define (sprite-stuck? s)
-    (eq? (sprite-direction s) 'none))
+    (equal? (sprite-direction s) 'none))
 
   ;; sprite->bounding-box :: sprite -> bounding-box
   (define (sprite->bounding-box s)
@@ -304,7 +304,7 @@
   ;; direction-blocked? :: sprite -> ('x | 'y) -> Boolean
   (define (direction-blocked? s d)
     (not
-      (if (eq? d 'x)
+      (if (equal? d 'x)
           (= (modulo (sprite-y s) 90) 60)
           (= (modulo (sprite-x s) 120) 30))))
 
@@ -314,7 +314,7 @@
            (x     (sprite-x s))
            (y     (sprite-y s))
            (new-s
-             (if (eq? d 'x)
+             (if (equal? d 'x)
                (make-sprite (snap-x (operator x speed)) y STUCK speed)
                (make-sprite x (snap-y (operator y speed)) STUCK speed))))
       (if (or (hit-wall? new-s)
@@ -326,10 +326,10 @@
   (define (move-sprite s)
     (let* ((d (sprite-direction s)))
       (cond
-        [(eq? d "down")  (update-sprite-position s 'y +)]
-        [(eq? d "up")    (update-sprite-position s 'y -)]
-        [(eq? d "left")  (update-sprite-position s 'x -)]
-        [(eq? d "right") (update-sprite-position s 'x +)]
+        [(equal? d "down")  (update-sprite-position s 'y +)]
+        [(equal? d "up")    (update-sprite-position s 'y -)]
+        [(equal? d "left")  (update-sprite-position s 'x -)]
+        [(equal? d "right") (update-sprite-position s 'x +)]
         [else s])))
 
   ;; player-was-eaten? :: sprite -> (sprite) -> Boolean

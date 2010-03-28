@@ -9,9 +9,9 @@
 [ ] animate coffin items
 [x] animate mummy
 [ ] add mummy ai
-[ ] mummies can kill player
-[ ] add collision detection for player
-[ ] add collision detection for mummies
+[x] mummies can kill player
+[x] add collision detection for player
+[x] add collision detection for mummies
 [ ] coffin items and effects
   [ ] player can hide in treasure rooms
   [ ] there is a mummy hiding in a random coffin
@@ -20,5 +20,5 @@
 [ ] uneaten mummies follow player into next room
 [ ] game menu
 [ ] pause menu
-[ ] display score
-[ ] display lives
+[x] display score
+[x] display lives
