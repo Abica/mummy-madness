@@ -10,8 +10,8 @@ To build the current progress of the game, you will need to have
 PLT Scheme installed. You can get it here: http://download.plt-scheme.org/
 
 Once you've downloaded PLT, open up DrScheme.
-1. File -> Open -> mummy.ss
-2. Run
+1. Click File -> Open -> mummy.ss
+2. Click Scheme -> Run
 
 If you're on a mac then you can probably just download and run a
 binary from the downloads section.
