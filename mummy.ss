@@ -52,7 +52,7 @@
   (define-struct posn (x y))
   ; location of the starting door
   (define ENTRANCE-POS
-    (make-posn 15 (/ SCREEN-HEIGHT 2)))
+    (make-posn (/ SCREEN-WIDTH 2) (/ SCREEN-HEIGHT 2)))
 
   ; valid directions for a moving character
   (define DIRECTIONS (list "up" "down" "left" "right"))
@@ -61,13 +61,13 @@
   (define STUCK 'none)
 
   ; how fast can the player move
-  (define PLAYER-SPEED 5)
+  (define PLAYER-SPEED 30)
 
   ; how many lives does the player start with?
   (define PLAYER-STARTING-LIVES 5)
 
   ; how fast can a mummy move
-  (define MUMMY-SPEED 5)
+  (define MUMMY-SPEED 30)
 
   ; how large are sprites
   (define sprite-size (make-size 30 30))
@@ -200,6 +200,7 @@
         (+ x (size-height crypt-size))
         (+ y (size-width crypt-size))
         x)))
+  
 
   ;;-------------------------------------------------------------------
   ;; interface functions
@@ -282,18 +283,34 @@
   ;;-------------------------------------------------------------------
   ;; movement functions
 
+  ;; snap-x :: Number -> Number
+  (define (snap-x x)
+    (let ((w (size-width sprite-size)))
+      (* w
+         (round (/ x w)))))
+  
+  ;; snap-y :: Number -> Number
+  (define (snap-y y)
+    (let ((h (size-height sprite-size)))
+      (* h
+         (round (/ y h)))))
+  
   ;; move-sprite :: sprite -> sprite
   (define (move-sprite s)
-    (let ((x     (sprite-x s))
-          (y     (sprite-y s))
-          (d     (sprite-direction s))
-          (speed (sprite-speed s)))
-      (cond
-        [(equal? d "down")  (make-sprite x (+ y speed) d speed)]
-        [(equal? d "up")    (make-sprite x (- y speed) d speed)]
-        [(equal? d "left")  (make-sprite (- x speed) y d speed)]
-        [(equal? d "right") (make-sprite (+ x speed) y d speed)]
-        [else s])))
+    (let* ((x     (sprite-x s))
+           (y     (sprite-y s))
+           (d     (sprite-direction s))
+           (speed (sprite-speed s))
+           (new-s (cond
+                    [(hit-wall? s) s]
+                    [(equal? d "down")  (make-sprite  x (snap-y (+ y speed)) STUCK speed)]
+                    [(equal? d "up")    (make-sprite  x (snap-y (- y speed)) STUCK speed)]
+                    [(equal? d "left")  (make-sprite (snap-x (- x speed)) y  STUCK speed)]
+                    [(equal? d "right") (make-sprite (snap-x (+ x speed)) y  STUCK speed)]
+                    [else s])))
+      (if (hit-wall? new-s)
+          (make-sprite x y STUCK speed)
+          new-s)))
 
   ;; player-was-eaten? :: sprite -> (sprite) -> Boolean
   (define (player-was-eaten? player mummies)
