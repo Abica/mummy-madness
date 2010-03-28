@@ -1,0 +1,13 @@
+Mummy Madness is a remake of the old Amstrad game Oh Mummy
+that was written for the 7 day lisp game design contest.
+
+The game was originally written in Clojure, but I scrapped that
+code and rewrote it in PLT Scheme using the universe and image
+teachpacks for DrScheme.
+
+= Running
+To see the current progress of the game, simply download the code,
+open it with DrScheme and click Run.
+
+If you're on a mac then you can probably download and run a binary
+from the downloads section.

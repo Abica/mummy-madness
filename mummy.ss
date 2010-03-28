@@ -134,7 +134,7 @@
 
   ;; initial-mummies :: (sprite)
   (define (initial-mummies)
-    (list (make-sprite 30 300 STUCK MUMMY-SPEED)))
+    (list (make-sprite 30 300 "up" MUMMY-SPEED)))
 
   ;; initial-crypts :: (crypt)
   (define (initial-crypts)
