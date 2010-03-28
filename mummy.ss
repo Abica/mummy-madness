@@ -49,7 +49,9 @@
 
   (define SCREEN-WIDTH 660)
   (define SCREEN-HEIGHT 450)
-  
+
+  (define GRID-LEFT-MARGIN 15)
+  (define GRID-TOP-MARGIN 44)
   (define GRID-WIDTH (- SCREEN-WIDTH  30))
   (define GRID-HEIGHT (- SCREEN-HEIGHT 59))
   
@@ -84,13 +86,13 @@
   ;; Scenes and layers
 
   ;; empty-scene :: image
-  (define empty-scene (rectangle SCREEN-WIDTH SCREEN-HEIGHT 'outline 'black))
+  (define empty-scene (rectangle SCREEN-WIDTH SCREEN-HEIGHT 'solid 'yellow))
 
   ;; background-layer :: image
   (define background-layer
-    (overlay/xy
+    (underlay/xy
       empty-scene
-      15 44
+      GRID-LEFT-MARGIN GRID-TOP-MARGIN
       (rectangle GRID-WIDTH GRID-HEIGHT 'solid 'black)))
 
 
@@ -192,8 +194,8 @@
           (y (sprite-y s)))
       (make-bounding-box
         y
-        (+ x (size-height sprite-size))
-        (+ y (size-width sprite-size))
+        (+ x (size-width sprite-size))
+        (+ y (size-height sprite-size))
         x)))
 
   ;; crypt->bounding-box :: crypt -> bounding-box
@@ -202,8 +204,8 @@
           (y (crypt-y c)))
       (make-bounding-box
         y
-        (+ x (size-height crypt-size))
-        (+ y (size-width crypt-size))
+        (+ x (size-width crypt-size))
+        (+ y (size-height crypt-size))
         x)))
 
   ;;-------------------------------------------------------------------
@@ -298,17 +300,27 @@
     (let ((h (size-height sprite-size)))
       (* h
          (round (/ y h)))))
+  
+  ;; direction-blocked? :: sprite -> ('x | 'y) -> Boolean
+  (define (direction-blocked? s d)
+    (let ((x (sprite-x s))
+          (y (sprite-y s)))
+      (not
+        (if (eq? d 'x)
+            (= (modulo y 90) 60)
+            (= (modulo x 120) 30)))))
 
   ;; update-sprite-position :: sprite -> ('x | 'y) -> (+ | -) -> sprite
   (define (update-sprite-position s d operator)
     (let* ((speed (sprite-speed s))
-           (x (sprite-x s))
-           (y (sprite-y s))
+           (x     (sprite-x s))
+           (y     (sprite-y s))
            (new-s
              (if (eq? d 'x)
                (make-sprite (snap-x (operator x speed)) y STUCK speed)
                (make-sprite x (snap-y (operator y speed)) STUCK speed))))
-      (if (hit-wall? new-s)
+      (if (or (hit-wall? new-s)
+              (direction-blocked? new-s d))
         (make-sprite x y STUCK speed)
         new-s)))
 
