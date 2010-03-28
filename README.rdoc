@@ -6,8 +6,12 @@ code and rewrote it in PLT Scheme using the universe and image
 teachpacks for DrScheme.
 
 = Running
-To see the current progress of the game, simply download the code,
-open it with DrScheme and click Run.
+To build the current progress of the game, you will need to have
+PLT Scheme installed. You can get it here: http://download.plt-scheme.org/
 
-If you're on a mac then you can probably download and run a binary
-from the downloads section.
+Once you've downloaded PLT, open up DrScheme.
+1. File -> Open -> mummy.ss
+2. Run
+
+If you're on a mac then you can probably just download and run a
+binary from the downloads section.
