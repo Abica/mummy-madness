@@ -8,7 +8,7 @@
 [ ] player can open coffins
 [ ] animate coffin items
 [x] animate mummy
-[ ] add mummy ai
+[x] add mummy ai
 [x] mummies can kill player
 [x] add collision detection for player
 [x] add collision detection for mummies
