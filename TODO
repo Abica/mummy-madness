@@ -3,6 +3,8 @@
 [x] draw room
 [x] draw coffins
 [x] draw player
+[x] display score
+[x] display lives
 [x] handle player movement
 [ ] draw player tracks
 [ ] player can open coffins
@@ -23,5 +25,4 @@
 [ ] uneaten mummies follow player into next room
 [ ] game menu
 [ ] pause menu
-[x] display score
-[x] display lives
+[ ] game over screen
