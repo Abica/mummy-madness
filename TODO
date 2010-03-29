@@ -9,6 +9,8 @@
 [ ] animate coffin items
 [x] animate mummy
 [x] add mummy ai
+  [ ] *BUG - mummies wiggle in place if on the same plane as user
+  [ ] *BUG - multiple mummies can eventually end up on identical paths
 [x] mummies can kill player
 [x] add collision detection for player
 [x] add collision detection for mummies
