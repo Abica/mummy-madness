@@ -31,11 +31,12 @@
   (define-struct crypt (x y open obj))
 
   ;; sprite ::
-  ;; x         : Number
-  ;; y         : Number
-  ;; direction : DIRECTION
-  ;; speed     : Number
-  (define-struct sprite (x y direction speed))
+  ;; x              : Number
+  ;; y              : Number
+  ;; direction      : DIRECTION
+  ;; last-direction : DIRECTION
+  ;; speed          : Number
+  (define-struct sprite (x y direction last-direction speed))
 
   ;; world ::
   ;; score   : Number
@@ -138,7 +139,8 @@
 
   ;; initial-mummies :: (sprite)
   (define (initial-mummies)
-    (list (make-sprite 30 300 "up" MUMMY-SPEED)))
+    (list (make-sprite 30 300 "up" STUCK MUMMY-SPEED)
+          (make-sprite 270 300 "down" STUCK MUMMY-SPEED)))
 
   ;; initial-crypts :: (crypt)
   (define (initial-crypts)
@@ -172,7 +174,7 @@
     (make-world
       0
       PLAYER-STARTING-LIVES
-      (make-sprite (posn-x ENTRANCE-POS) (posn-y ENTRANCE-POS) STUCK PLAYER-SPEED)
+      (make-sprite (posn-x ENTRANCE-POS) (posn-y ENTRANCE-POS) STUCK STUCK PLAYER-SPEED)
       (initial-mummies)
       (initial-crypts)))
   
@@ -244,18 +246,26 @@
   ;; render-score :: Number -> scene -> image
   (define (render-score score scene)
     (place-image
-      (text (number->string score) 24 "black")
+      (text "Score " 24 "black")
+      50
       20
-      20
-      scene))
+      (place-image
+        (text (number->string score) 24 "black")
+        90
+        20
+        scene)))
 
   ;; render-lives :: Number -> scene -> image
   (define (render-lives lives scene)
     (place-image
-      (text (number->string lives) 24 "black")
-      (- SCREEN-WIDTH 20)
+      (text "Lives" 24 "black")
+      (- SCREEN-WIDTH 60)
       20
-      scene))
+      (place-image
+        (text (number->string lives) 24 "black")
+        (- SCREEN-WIDTH 20)
+        20
+        scene)))
 
   ;; render-world :: world -> image
   (define (render-world w)
@@ -316,16 +326,34 @@
       'y
       'x))
  
+  ;; on-x-axis? :: sprite -> Boolean
+  (define (on-x-axis? s)
+    (= (modulo (sprite-y s) 90) 60))
+  
+  ;; on-y-axis? :: sprite -> Boolean
+  (define (on-y-axis? s)
+    (= (modulo (sprite-x s) 120) 30))
+  
+  ;; at-crossroads? :: sprite -> Boolean
+  (define (at-crossroads? s)
+    (and (on-x-axis? s) (on-y-axis? s)))
+  
   ;; axis-blocked? :: sprite -> ('x | 'y) -> Boolean
   (define (axis-blocked? s axis)
     (not
       (if (equal? axis 'x)
-          (= (modulo (sprite-y s) 90) 60)
-          (= (modulo (sprite-x s) 120) 30))))
+          (on-x-axis? s)
+          (on-y-axis? s))))
   
   ;; direction-blocked? :: sprite -> DIRECTION -> Boolean
   (define (direction-blocked? s d)
     (axis-blocked? s (direction-to-axis d)))
+  
+  ;; first-unblocked-direction :: sprite -> DIRECTION
+  (define (first-unblocked-direction s)
+    (findf (lambda (d)
+             (not (direction-blocked? s d))) 
+           DIRECTIONS))
 
   ;; update-sprite-position :: sprite -> ('x | 'y) -> (+ | -) -> sprite
   (define (update-sprite-position s axis operator)
@@ -333,13 +361,13 @@
            (x     (sprite-x s))
            (y     (sprite-y s))
            (d     (sprite-direction s))
-           (new-s
-             (if (equal? axis 'x)
-                 (make-sprite (operator x speed) y STUCK speed)
-                 (make-sprite x (operator y speed) STUCK speed))))
+           (ld    (sprite-last-direction s))
+           (new-s (if (equal? axis 'x)
+                      (make-sprite (operator x speed) y STUCK d speed)
+                      (make-sprite x (operator y speed) STUCK d speed))))
       (if (or (hit-wall? new-s)
               (axis-blocked? new-s axis))
-          (make-sprite x y d speed)
+          (make-sprite x y d ld speed)
           new-s)))
 
   ;; move-sprite :: sprite -> sprite
@@ -351,8 +379,8 @@
         [(equal? d "left")  (update-sprite-position s 'x -)]
         [(equal? d "right") (update-sprite-position s 'x +)]
         [else s])))
-  
-  
+ 
+    
   ;;-------------------------------------------------------------------
   ;; enemy ai
 
@@ -369,16 +397,15 @@
     (move-sprite
      (make-sprite
        mx my
-       (cond
-         [(not
-            (or x-blocked?
-                y-blocked?))
-          (if (> (abs (- px mx))
-                 (abs (- py my)))
+       (if (at-crossroads? m)
+         (if (> (abs (- px mx))
+                (abs (- py my)))
               x-axis
-              y-axis)]
-         [x-blocked? y-axis]
-         [y-blocked? x-axis])
+              y-axis)
+         (if (direction-blocked? m (sprite-last-direction m))
+             (first-unblocked-direction m)
+             (sprite-last-direction m)))
+       (sprite-direction m)
        (sprite-speed m)))))
   
   ;;-------------------------------------------------------------------
@@ -397,10 +424,11 @@
   
   ;; update-world :: world -> world
   (define (update-world w)
-    (let* ((crypts  (world-crypts w))
+    (let* ((lives   (world-lives w))
+           (crypts  (world-crypts w))
            (player  (move-sprite (world-p w)))
-           (mummies (map (lambda (m) (mummy-follows-player m player)) (world-mummies w)))
-           (lives   (world-lives w)))
+           (mummies (map (lambda (m) (mummy-follows-player m player))
+                         (world-mummies w))))
       (make-world
         (world-score w)
         (if (player-was-eaten? player mummies) (- lives 1) lives)
@@ -425,6 +453,7 @@
             (if (direction-blocked? p d)
               (sprite-direction p)
               d)
+            (sprite-last-direction p)
             PLAYER-SPEED)
           (world-mummies w)
           (world-crypts w))
