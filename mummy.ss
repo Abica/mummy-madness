@@ -83,100 +83,7 @@
   (define PLAYER-SPEED 30)
 
   ; how fast can a mummy move
-  (define MUMMY-SPEED 5)
-
-  
-  ;;-------------------------------------------------------------------
-  ;; Scenes and layers
-
-  ;; empty-scene :: image
-  (define empty-scene (rectangle SCREEN-WIDTH SCREEN-HEIGHT 'solid 'yellow))
-
-  ;; background-layer :: image
-  (define background-layer
-    (underlay/xy
-      empty-scene
-      GRID-LEFT-MARGIN GRID-TOP-MARGIN
-      (rectangle GRID-WIDTH GRID-HEIGHT 'solid 'black)))
-
-
-  ;; mummy-layer :: image
-  (define mummy-layer
-    (rectangle
-      (size-height sprite-size)
-      (size-width  sprite-size)
-      'solid 'red))
-
-  ;; player-layer :: image
-  (define player-layer
-    (rectangle
-      (size-height sprite-size)
-      (size-width  sprite-size)
-      'solid 'green))
-
-  ;; crypt-layer :: image
-  (define crypt-layer
-    (rectangle
-      (size-height crypt-size)
-      (size-width crypt-size)
-      'solid 'gray))
-
-  ;; scroll-layer :: image
-  (define scroll-layer empty-scene)
-
-  ;; key-layer :: image
-  (define key-layer empty-scene)
-
-  ;; king-mummy-layer :: image
-  (define king-mummy-layer empty-scene)
-
-  ;; treasure-tomb-layer :: image
-  (define treasure-tomb-layer empty-scene)
-
-  
-  ;;-------------------------------------------------------------------
-  ;; initial states
-
-  ;; initial-mummies :: (sprite)
-  (define (initial-mummies)
-    (list (make-sprite 30 300 "up" STUCK MUMMY-SPEED)
-          (make-sprite 270 300 "down" STUCK MUMMY-SPEED)))
-
-  ;; initial-crypts :: (crypt)
-  (define (initial-crypts)
-    (list
-     (make-crypt 90 105 #f (make-object 'key))
-     (make-crypt 210 105 #f (make-object 'key))
-     (make-crypt 330 105 #f (make-object 'key))
-     (make-crypt 450 105 #f (make-object 'key))
-     (make-crypt 570 105 #f (make-object 'key))
-
-     (make-crypt 90 195 #f (make-object 'key))
-     (make-crypt 210 195 #f (make-object 'key))
-     (make-crypt 330 195 #f (make-object 'key))
-     (make-crypt 450 195 #f (make-object 'key))
-     (make-crypt 570 195 #f (make-object 'key))
-
-     (make-crypt 90 285 #f (make-object 'key))
-     (make-crypt 210 285 #f (make-object 'key))
-     (make-crypt 330 285 #f (make-object 'key))
-     (make-crypt 450 285 #f (make-object 'key))
-     (make-crypt 570 285 #f (make-object 'key))
-
-     (make-crypt 90 375 #f (make-object 'key))
-     (make-crypt 210 375 #f (make-object 'key))
-     (make-crypt 330 375 #f (make-object 'key))
-     (make-crypt 450 375 #f (make-object 'key))
-     (make-crypt 570 375 #f (make-object 'key))))
-
-  ;; initial-world :: world
-  (define (initial-world)
-    (make-world
-      0
-      PLAYER-STARTING-LIVES
-      (make-sprite (posn-x ENTRANCE-POS) (posn-y ENTRANCE-POS) STUCK STUCK PLAYER-SPEED)
-      (initial-mummies)
-      (initial-crypts)))
+  (define MUMMY-SPEED 4)
   
 
   ;;-------------------------------------------------------------------
@@ -214,71 +121,6 @@
         (+ x (size-width crypt-size))
         (+ y (size-height crypt-size))
         x)))
-  
-
-  ;;-------------------------------------------------------------------
-  ;; interface functions
-
-  ;; render-player :: sprite -> scene -> image
-  (define (render-player p scene)
-    (place-image
-      player-layer
-      (sprite-x p)
-      (sprite-y p)
-      scene))
-
-  ;; render-mummy :: sprite -> scene -> image
-  (define (render-mummy m scene)
-    (place-image
-      mummy-layer
-      (sprite-x m)
-      (sprite-y m)
-      scene))
-
-  ;; render-crypt :: crypt -> scene -> image
-  (define (render-crypt c scene)
-    (place-image
-      crypt-layer
-      (crypt-x c)
-      (crypt-y c)
-      scene))
-
-  ;; render-score :: Number -> scene -> image
-  (define (render-score score scene)
-    (place-image
-      (text "Score " 24 "black")
-      50
-      20
-      (place-image
-        (text (number->string score) 24 "black")
-        90
-        20
-        scene)))
-
-  ;; render-lives :: Number -> scene -> image
-  (define (render-lives lives scene)
-    (place-image
-      (text "Lives" 24 "black")
-      (- SCREEN-WIDTH 60)
-      20
-      (place-image
-        (text (number->string lives) 24 "black")
-        (- SCREEN-WIDTH 20)
-        20
-        scene)))
-
-  ;; render-world :: world -> image
-  (define (render-world w)
-    (render-player (world-p w)
-      (render-lives (world-lives w)
-        (render-score (world-score w)
-          (foldr
-            (lambda (m l) (render-mummy m l))
-            (foldr
-              (lambda (c l) (render-crypt c l))
-               background-layer
-               (world-crypts w))
-            (world-mummies w))))))
 
   
   ;;-------------------------------------------------------------------
@@ -290,8 +132,8 @@
   (define (hit-wall? s)
     (let ((x (sprite-x s))
           (y (sprite-y s)))
-      (or (= x 0) (= x SCREEN-WIDTH)
-          (= y 30) (= y SCREEN-HEIGHT))))
+      (or (<= x 0) (>= x SCREEN-WIDTH)
+          (<= y 30) (>= y SCREEN-HEIGHT))))
 
   ;; collided? :: bounding-box -> bounding-box -> Boolean
   ;;;
@@ -458,7 +300,158 @@
           (world-mummies w)
           (world-crypts w))
         w)))
+  
+  ;;-------------------------------------------------------------------
+  ;; Scenes and layers
 
+  ;; empty-scene :: image
+  (define empty-scene (rectangle SCREEN-WIDTH SCREEN-HEIGHT 'solid 'yellow))
+
+  ;; background-layer :: image
+  (define background-layer
+    (underlay/xy
+      empty-scene
+      GRID-LEFT-MARGIN GRID-TOP-MARGIN
+      (rectangle GRID-WIDTH GRID-HEIGHT 'solid 'black)))
+
+  ;; mummy-layer :: image
+  (define mummy-layer
+    (bitmap "mummy-forward.png"))
+  
+  ;; player-layer :: image
+  (define player-layer
+    (bitmap "player-forward.png"))
+
+  ;; crypt-layer :: image
+  (define crypt-layer
+    (rectangle
+      (size-height crypt-size)
+      (size-width crypt-size)
+      'solid 'gray))
+
+  ;; scroll-layer :: image
+  (define scroll-layer empty-scene)
+
+  ;; key-layer :: image
+  (define key-layer empty-scene)
+
+  ;; king-mummy-layer :: image
+  (define king-mummy-layer empty-scene)
+
+  ;; treasure-tomb-layer :: image
+  (define treasure-tomb-layer empty-scene)
+
+
+  ;;-------------------------------------------------------------------
+  ;; interface functions
+
+  ;; render-player :: sprite -> scene -> image
+  (define (render-player p scene)
+    (place-image
+      player-layer
+      (sprite-x p)
+      (sprite-y p)
+      scene))
+
+  ;; render-mummy :: sprite -> scene -> image
+  (define (render-mummy m scene)
+    (place-image
+      mummy-layer
+      (sprite-x m)
+      (sprite-y m)
+      scene))
+
+  ;; render-crypt :: crypt -> scene -> image
+  (define (render-crypt c scene)
+    (place-image
+      crypt-layer
+      (crypt-x c)
+      (crypt-y c)
+      scene))
+
+  ;; render-score :: Number -> scene -> image
+  (define (render-score score scene)
+    (place-image
+      (text "Score " 24 "black")
+      50
+      20
+      (place-image
+        (text (number->string score) 24 "black")
+        90
+        20
+        scene)))
+
+  ;; render-lives :: Number -> scene -> image
+  (define (render-lives lives scene)
+    (place-image
+      (text "Lives" 24 "black")
+      (- SCREEN-WIDTH 60)
+      20
+      (place-image
+        (text (number->string lives) 24 "black")
+        (- SCREEN-WIDTH 20)
+        20
+        scene)))
+
+  ;; render-world :: world -> image
+  (define (render-world w)
+    (render-player (world-p w)
+      (render-lives (world-lives w)
+        (render-score (world-score w)
+          (foldr
+            (lambda (m l) (render-mummy m l))
+            (foldr
+              (lambda (c l) (render-crypt c l))
+               background-layer
+               (world-crypts w))
+            (world-mummies w))))))
+  
+  
+  ;;-------------------------------------------------------------------
+  ;; initial states
+
+  ;; initial-mummies :: (sprite)
+  (define (initial-mummies)
+    (list (make-sprite 30 300 "up" STUCK MUMMY-SPEED)
+          (make-sprite 270 300 "down" STUCK MUMMY-SPEED)))
+
+  ;; initial-crypts :: (crypt)
+  (define (initial-crypts)
+    (list
+     (make-crypt 90 105 #f (make-object 'key))
+     (make-crypt 210 105 #f (make-object 'key))
+     (make-crypt 330 105 #f (make-object 'key))
+     (make-crypt 450 105 #f (make-object 'key))
+     (make-crypt 570 105 #f (make-object 'key))
+
+     (make-crypt 90 195 #f (make-object 'key))
+     (make-crypt 210 195 #f (make-object 'key))
+     (make-crypt 330 195 #f (make-object 'key))
+     (make-crypt 450 195 #f (make-object 'key))
+     (make-crypt 570 195 #f (make-object 'key))
+
+     (make-crypt 90 285 #f (make-object 'key))
+     (make-crypt 210 285 #f (make-object 'key))
+     (make-crypt 330 285 #f (make-object 'key))
+     (make-crypt 450 285 #f (make-object 'key))
+     (make-crypt 570 285 #f (make-object 'key))
+
+     (make-crypt 90 375 #f (make-object 'key))
+     (make-crypt 210 375 #f (make-object 'key))
+     (make-crypt 330 375 #f (make-object 'key))
+     (make-crypt 450 375 #f (make-object 'key))
+     (make-crypt 570 375 #f (make-object 'key))))
+
+  ;; initial-world :: world
+  (define (initial-world)
+    (make-world
+      0
+      PLAYER-STARTING-LIVES
+      (make-sprite (posn-x ENTRANCE-POS) (posn-y ENTRANCE-POS) STUCK STUCK PLAYER-SPEED)
+      (initial-mummies)
+      (initial-crypts)))
+  
+  
       ;       ;;;;;;; ;;;;;;;  ;;;;;;; ;     ; ;;;;;;; ;;;;;;  ;;;;;;;
      ;       ;          ;        ;    ;     ; ;       ;     ; ;
     ;       ;;;;;;;    ;        ;    ;;;;;;; ;;;;;;; ;;;;;;  ;;;;;;;
